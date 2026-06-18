@@ -11,7 +11,7 @@ import openai
 
 from .detect import Box
 
-VALID_LABELS = {"ball", "butterfly", "threeway", "pinch", "gate", "unknown"}
+VALID_LABELS = {"ball", "butterfly", "threeway", "pinch", "gate", "oilpump", "coriolismeter", "unknown"}
 
 
 def build_reference_payload(

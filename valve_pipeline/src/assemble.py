@@ -11,6 +11,8 @@ _LABEL_COLORS: dict[str, tuple[int, int, int]] = {
     "threeway":  (255, 128, 0),
     "pinch":     (128, 0, 255),
     "gate":      (0, 215, 255),
+    "oilpump":   (100,100,100),
+    "coriolismeter": (100, 0, 100),
 }
 
 
