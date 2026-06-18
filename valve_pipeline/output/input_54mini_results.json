@@ -1,0 +1,161 @@
+{
+  "schematic": "input/input_54mini.png",
+  "detections": [
+    {
+      "bbox": [
+        103,
+        435,
+        356,
+        251
+      ],
+      "label": "gate",
+      "confidence": 0.9,
+      "detection_source": "cc",
+      "match_score": 1.0
+    },
+    {
+      "bbox": [
+        549,
+        435,
+        329,
+        183
+      ],
+      "label": "gate",
+      "confidence": 0.8,
+      "detection_source": "cc",
+      "match_score": 1.0
+    },
+    {
+      "bbox": [
+        65,
+        537,
+        198,
+        79
+      ],
+      "label": "gate",
+      "confidence": 0.7,
+      "detection_source": "cc",
+      "match_score": 1.0
+    },
+    {
+      "bbox": [
+        289,
+        626,
+        26,
+        36
+      ],
+      "label": "gate",
+      "confidence": 0.84,
+      "detection_source": "cc",
+      "match_score": 1.0
+    },
+    {
+      "bbox": [
+        687,
+        157,
+        50,
+        50
+      ],
+      "label": "butterfly",
+      "confidence": 0.72,
+      "detection_source": "template",
+      "match_score": 0.49027013778686523
+    },
+    {
+      "bbox": [
+        808,
+        515,
+        39,
+        32
+      ],
+      "label": "gate",
+      "confidence": 0.9,
+      "detection_source": "template",
+      "match_score": 0.4887535870075226
+    },
+    {
+      "bbox": [
+        386,
+        101,
+        39,
+        32
+      ],
+      "label": "gate",
+      "confidence": 0.75,
+      "detection_source": "template",
+      "match_score": 0.48151734471321106
+    },
+    {
+      "bbox": [
+        833,
+        515,
+        39,
+        32
+      ],
+      "label": "gate",
+      "confidence": 0.8,
+      "detection_source": "template",
+      "match_score": 0.48066961765289307
+    },
+    {
+      "bbox": [
+        327,
+        588,
+        39,
+        32
+      ],
+      "label": "gate",
+      "confidence": 0.85,
+      "detection_source": "template",
+      "match_score": 0.4782998263835907
+    },
+    {
+      "bbox": [
+        207,
+        578,
+        50,
+        50
+      ],
+      "label": "butterfly",
+      "confidence": 0.88,
+      "detection_source": "template",
+      "match_score": 0.4774399399757385
+    },
+    {
+      "bbox": [
+        587,
+        164,
+        52,
+        42
+      ],
+      "label": "gate",
+      "confidence": 0.88,
+      "detection_source": "template",
+      "match_score": 0.46736234426498413
+    },
+    {
+      "bbox": [
+        806,
+        163,
+        39,
+        32
+      ],
+      "label": "gate",
+      "confidence": 0.92,
+      "detection_source": "template",
+      "match_score": 0.46307215094566345
+    },
+    {
+      "bbox": [
+        773,
+        164,
+        52,
+        42
+      ],
+      "label": "gate",
+      "confidence": 0.86,
+      "detection_source": "template",
+      "match_score": 0.46259984374046326
+    }
+  ]
+}
