@@ -16,6 +16,7 @@ _LABEL_COLORS: dict[str, tuple[int, int, int]] = {
 }
 
 
+# Draws colored bounding boxes and label text onto the original image for every detection that passes the confidence threshold, and returns the annotated image alongside the structured result records.
 def assemble(
     original_img: np.ndarray,
     crops: list[tuple[Box, np.ndarray]],

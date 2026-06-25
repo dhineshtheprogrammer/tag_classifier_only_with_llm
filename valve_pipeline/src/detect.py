@@ -18,6 +18,7 @@ class Box:
     template_label: str = field(default="")
 
 
+# Loads each reference valve image from disk, binarizes it, and returns a dict mapping label names to their binary template arrays.
 def load_templates(
     refs_dir: str | Path,
     reference_map: dict[str, str],
@@ -37,6 +38,7 @@ def load_templates(
     return templates
 
 
+# Finds all candidate valve regions in the binary image by combining template matching and connected-component analysis, then removes overlapping boxes via NMS.
 def detect_candidates(
     binary_img: np.ndarray,
     templates: dict[str, np.ndarray],
@@ -83,6 +85,7 @@ def detect_candidates(
     return merged
 
 
+# Slices out each detected box region from the original color image with a small padding, returning only crops that are large enough to classify.
 def crop_candidates(
     original_img: np.ndarray,
     boxes: list[Box],
@@ -102,6 +105,7 @@ def crop_candidates(
     return results
 
 
+# Removes duplicate overlapping boxes by keeping the highest-scoring box and suppressing any other box whose IoU with it exceeds the given threshold.
 def non_max_suppression(boxes: list[Box], iou_threshold: float) -> list[Box]:
     if not boxes:
         return []
@@ -118,6 +122,7 @@ def non_max_suppression(boxes: list[Box], iou_threshold: float) -> list[Box]:
     return kept
 
 
+# Calculates the Intersection over Union (IoU) ratio between two boxes to measure how much they overlap.
 def _iou(a: Box, b: Box) -> float:
     ax2, ay2 = a.x + a.w, a.y + a.h
     bx2, by2 = b.x + b.w, b.y + b.h
@@ -130,6 +135,7 @@ def _iou(a: Box, b: Box) -> float:
     return inter / union if union > 0 else 0.0
 
 
+# Rotates a template image by the given angle while expanding the canvas to prevent any part of the symbol from being clipped.
 def _rotate_template(img: np.ndarray, angle: float) -> np.ndarray:
     if angle == 0:
         return img
@@ -150,6 +156,7 @@ def _rotate_template(img: np.ndarray, angle: float) -> np.ndarray:
     )
 
 
+# Slides each reference template across the binary image at every combination of scale and angle, creating a Box wherever the match score meets the threshold.
 def _template_match_boxes(
     binary_img: np.ndarray,
     templates: dict[str, np.ndarray],
@@ -183,6 +190,7 @@ def _template_match_boxes(
     return boxes
 
 
+# Finds candidate boxes by extracting connected blobs from the binary image and keeping only those whose area and aspect ratio fall within the configured valve size range.
 def _cc_boxes(
     binary_img: np.ndarray,
     cc_min_area: int,
@@ -206,6 +214,7 @@ def _cc_boxes(
     return boxes
 
 
+# Draws all candidate boxes onto a copy of the binary image (red for template matches, orange for CC blobs) and saves it as a debug PNG.
 def _save_debug_boxes(img: np.ndarray, boxes: list[Box], path: Path) -> None:
     vis = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     for box in boxes:

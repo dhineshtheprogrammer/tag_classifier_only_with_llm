@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 
+# Converts a raw schematic image to a clean binary image (white symbols on black) by applying Otsu thresholding, median blur denoising, and optional deskew correction.
 def preprocess(
     image_path: str | Path,
     config: dict,
@@ -39,6 +40,7 @@ def preprocess(
     return denoised
 
 
+# Estimates the document skew angle in degrees by detecting horizontal lines via Hough transform and taking the median of their angles.
 def _estimate_skew(binary: np.ndarray) -> float:
     edges = cv2.Canny(binary, 50, 150, apertureSize=3)
     lines = cv2.HoughLinesP(
@@ -54,6 +56,7 @@ def _estimate_skew(binary: np.ndarray) -> float:
     return float(np.median(horiz)) if horiz else 0.0
 
 
+# Rotates the binary image to correct its skew angle; returns the image unchanged if the skew is less than 0.5 degrees.
 def _deskew(binary: np.ndarray) -> np.ndarray:
     skew = _estimate_skew(binary)
     if abs(skew) < 0.5:

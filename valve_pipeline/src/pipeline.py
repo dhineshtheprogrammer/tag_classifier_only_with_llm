@@ -15,6 +15,7 @@ from .detect import crop_candidates, detect_candidates, load_templates
 from .preprocess import preprocess
 
 
+# Runs the full 4-stage pipeline (preprocess → detect → classify → assemble) on a single schematic image and writes annotated PNG + JSON results.
 def run(
     schematic_path: str | Path,
     config_path: str | Path = "config.yaml",

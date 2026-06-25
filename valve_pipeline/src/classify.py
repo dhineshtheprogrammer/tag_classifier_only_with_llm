@@ -14,6 +14,7 @@ from .detect import Box
 VALID_LABELS = {"ball", "butterfly", "threeway", "pinch", "gate", "oilpump", "coriolismeter", "unknown"}
 
 
+# Reads all reference valve images from disk, encodes them as base64, and builds the list of message content blocks that will be sent to the LLM as visual examples.
 def build_reference_payload(
     refs_dir: str | Path,
     reference_map: dict[str, str],
@@ -37,6 +38,7 @@ def build_reference_payload(
     return items
 
 
+# Sends a single cropped image to the OpenAI vision model alongside the reference valve images and returns the predicted label and confidence as a dict.
 def classify_crop(
     crop_bgr: "np.ndarray",
     reference_payload: list,
@@ -107,6 +109,7 @@ def classify_crop(
     return {"label": label, "confidence": confidence}
 
 
+# Wraps classify_crop with exponential-backoff retry logic for rate limit errors, returning an "unknown" result if all attempts fail.
 def _call_with_retry(
     crop_bgr: "np.ndarray",
     reference_payload: list,
@@ -130,6 +133,7 @@ def _call_with_retry(
     return {"label": "unknown", "confidence": 0.0}
 
 
+# Classifies all cropped regions in parallel using a thread pool, preserving their original order, and returns one result dict per crop.
 def classify_all(
     crops: list[tuple[Box, "np.ndarray"]],
     reference_payload: list,
