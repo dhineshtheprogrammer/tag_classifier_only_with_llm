@@ -62,8 +62,15 @@ def classify_crop(
             "P&ID schematics contain many non-valve elements: straight pipe lines, "
             "pipe elbows, tee junctions, reducers, instruments, pumps, tanks, "
             "text labels, and dimension lines. These must all be classified as 'unknown'. "
-            "Only classify as a valve type if the crop clearly matches a reference symbol. "
-            "When in doubt, use 'unknown'. Reply with ONLY a JSON object."
+            "Additionally, classify as 'unknown' any drawing border elements, including: "
+            "grid reference numbers or letters (e.g. row numbers 1–8, column letters A–M), "
+            "revision clouds or revision marker boxes, title block cells (project name, "
+            "scale, date, drawing number), engineer or approval stamps, scale bars, "
+            "legend boxes, and any rectangular frame or box that is part of the "
+            "drawing's administrative border rather than the process schematic. "
+            "Only classify as a valve type if the crop clearly and unambiguously matches "
+            "one of the reference valve symbols. When in doubt, use 'unknown'. "
+            "Reply with ONLY a JSON object."
         ),
     }
 

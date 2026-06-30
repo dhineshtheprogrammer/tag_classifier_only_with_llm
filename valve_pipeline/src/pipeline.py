@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 
 from .assemble import assemble
 from .classify import build_reference_payload, classify_all
-from .detect import crop_candidates, detect_candidates, load_templates
-from .preprocess import preprocess
+from .detect import Box, crop_candidates, detect_candidates, load_templates
+from .preprocess import detect_drawing_roi, preprocess
 
 
 # Runs the full 4-stage pipeline (preprocess → detect → classify → assemble) on a single schematic image and writes annotated PNG + JSON results.
@@ -48,13 +48,42 @@ def run(
     if original is None:
         raise FileNotFoundError(f"Cannot read schematic: {schematic_path}")
 
+    # Detect the inner drawing frame and crop both images to it so that border
+    # strips (grid numbers, title block, revision markers) are excluded before
+    # any detection runs.
+    gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
+    roi = detect_drawing_roi(gray)
+    roi_offset = (0, 0)
+    if roi:
+        rx, ry, rw, rh = roi
+        roi_offset = (rx, ry)
+        binary_det = binary[ry:ry + rh, rx:rx + rw]
+        original_det = original[ry:ry + rh, rx:rx + rw]
+        print(f"[pipeline] Drawing ROI detected: x={rx} y={ry} {rw}×{rh}px — border strips excluded")
+    else:
+        binary_det = binary
+        original_det = original
+        print("[pipeline] Drawing ROI not detected — processing full image")
+
     refs_dir = config["paths"]["refs_dir"]
     templates = load_templates(refs_dir, config["reference_map"])
-    boxes = detect_candidates(binary, templates, config, debug=debug, debug_dir=debug_dir, stem=stem)
+    boxes = detect_candidates(binary_det, templates, config, debug=debug, debug_dir=debug_dir, stem=stem)
     print(f"[pipeline] Stage 2 done — {len(boxes)} candidates after NMS")
 
-    crops = crop_candidates(original, boxes)
+    crops = crop_candidates(original_det, boxes)
     print(f"[pipeline] Stage 2b done — {len(crops)} valid crops")
+
+    # Re-map box coordinates back to full-image space so the annotated output
+    # and JSON bboxes are relative to the original schematic.
+    dx, dy = roi_offset
+    if dx or dy:
+        crops = [
+            (
+                Box(b.x + dx, b.y + dy, b.w, b.h, b.score, b.source, b.template_label),
+                crop_img,
+            )
+            for b, crop_img in crops
+        ]
 
     if not crops:
         print("[pipeline] No candidates found — check detection thresholds")

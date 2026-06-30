@@ -75,6 +75,14 @@ def detect_candidates(
 
     merged = non_max_suppression(all_boxes, nms_iou)
 
+    # Fallback border filter: reject candidates whose centre falls within the
+    # configured margin fraction of the image edge (catches any border element
+    # that the ROI crop in pipeline.py didn't already exclude).
+    margin_frac = det_cfg.get("border_margin", 0.0)
+    if margin_frac > 0:
+        ih, iw = binary_img.shape[:2]
+        merged = _filter_border_candidates(merged, ih, iw, margin_frac)
+
     if debug and debug_dir is not None:
         _save_debug_boxes(
             binary_img,
@@ -133,6 +141,21 @@ def _iou(a: Box, b: Box) -> float:
     inter = max(0, ix2 - ix1) * max(0, iy2 - iy1)
     union = int(a.w) * int(a.h) + int(b.w) * int(b.h) - inter
     return inter / union if union > 0 else 0.0
+
+
+# Removes candidates whose centre point falls within margin_frac of any image edge, filtering out border-strip elements (grid numbers, title block cells, etc.) that survive ROI cropping.
+def _filter_border_candidates(
+    boxes: list[Box], img_h: int, img_w: int, margin_frac: float
+) -> list[Box]:
+    mx = int(img_w * margin_frac)
+    my = int(img_h * margin_frac)
+    kept = []
+    for b in boxes:
+        cx = b.x + b.w // 2
+        cy = b.y + b.h // 2
+        if mx < cx < img_w - mx and my < cy < img_h - my:
+            kept.append(b)
+    return kept
 
 
 # Rotates a template image by the given angle while expanding the canvas to prevent any part of the symbol from being clipped.

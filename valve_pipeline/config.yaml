@@ -5,6 +5,7 @@ detection:
   angles: [0, 45, 90, 135, 180, 225, 270, 315]
   match_threshold: 0.45
   nms_iou: 0.3
+  border_margin: 0.03
   cc_min_area: 80
   cc_max_area: 8000
   cc_aspect_range: [0.3, 4.0]
