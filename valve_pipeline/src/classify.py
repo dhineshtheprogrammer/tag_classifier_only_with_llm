@@ -5,6 +5,7 @@ import json
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Any
 
 import cv2
 import openai
@@ -43,7 +44,7 @@ def classify_crop(
     crop_bgr: "np.ndarray",
     reference_payload: list,
     config: dict,
-    client: openai.OpenAI,
+    client: Any,
 ) -> dict:
     try:
         ok, buf = cv2.imencode(".png", crop_bgr)
@@ -121,7 +122,7 @@ def _call_with_retry(
     crop_bgr: "np.ndarray",
     reference_payload: list,
     config: dict,
-    client: openai.OpenAI,
+    client: Any,
     max_retries: int = 4,
 ) -> dict:
     for attempt in range(max_retries):
@@ -145,7 +146,7 @@ def classify_all(
     crops: list[tuple[Box, "np.ndarray"]],
     reference_payload: list,
     config: dict,
-    client: openai.OpenAI,
+    client: Any,
 ) -> list[dict]:
     if not crops:
         return []

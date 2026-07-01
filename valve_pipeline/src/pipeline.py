@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import cv2
-import openai
 import yaml
-from dotenv import load_dotenv
 
 from .assemble import assemble
 from .classify import build_reference_payload, classify_all
 from .detect import Box, crop_candidates, detect_candidates, load_templates
+from .helper import secure_models
 from .preprocess import detect_drawing_roi, preprocess
 
 
@@ -21,11 +19,7 @@ def run(
     config_path: str | Path = "config.yaml",
     debug: bool = False,
 ) -> list[dict]:
-    load_dotenv()
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise EnvironmentError("Set OPENAI_API_KEY in .env or environment before running")
-    client = openai.OpenAI(api_key=api_key)
+    client = secure_models
 
     with open(config_path) as f:
         config = yaml.safe_load(f)
