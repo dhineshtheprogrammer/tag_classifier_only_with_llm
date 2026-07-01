@@ -9,7 +9,7 @@ import yaml
 from .assemble import assemble
 from .classify import build_reference_payload, classify_all
 from .detect import Box, crop_candidates, detect_candidates, load_templates
-from .helper import secure_models
+from .helper import llmModels, secure_models
 from .preprocess import detect_drawing_roi, preprocess
 
 
@@ -23,6 +23,11 @@ def run(
 
     with open(config_path) as f:
         config = yaml.safe_load(f)
+
+    if config["model"] not in llmModels:
+        raise ValueError(
+            f"config model {config['model']!r} is not one of the wrapper's llmModels {llmModels}"
+        )
 
     out_dir = Path(config["paths"]["output_dir"])
     debug_dir = Path(config["paths"]["debug_dir"])

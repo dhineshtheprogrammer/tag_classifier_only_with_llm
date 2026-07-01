@@ -9,13 +9,15 @@ from typing import Any
 
 import cv2
 import openai
+from llama_index.core.llms import ChatMessage, ImageBlock, MessageRole, TextBlock
 
 from .detect import Box
+from .helper import llmModels
 
 VALID_LABELS = {"ball", "butterfly", "threeway", "pinch", "gate", "oilpump", "coriolismeter", "unknown"}
 
 
-# Reads all reference valve images from disk, encodes them as base64, and builds the list of message content blocks that will be sent to the LLM as visual examples.
+# Reads all reference valve images from disk, encodes them as base64, and builds the list of chat message blocks that will be sent to the LLM as visual examples.
 def build_reference_payload(
     refs_dir: str | Path,
     reference_map: dict[str, str],
@@ -28,14 +30,8 @@ def build_reference_payload(
         with open(path, "rb") as f:
             b64 = base64.b64encode(f.read()).decode("utf-8")
         ext = path.suffix.lstrip(".")
-        items.append({"type": "text", "text": f"Reference — {label}:"})
-        items.append({
-            "type": "image_url",
-            "image_url": {
-                "url": f"data:image/{ext};base64,{b64}",
-                "detail": "low",
-            },
-        })
+        items.append(TextBlock(text=f"Reference — {label}:"))
+        items.append(ImageBlock(url=f"data:image/{ext};base64,{b64}", detail="low"))
     return items
 
 
@@ -54,9 +50,9 @@ def classify_crop(
     except Exception:
         return {"label": "unknown", "confidence": 0.0}
 
-    system_msg = {
-        "role": "system",
-        "content": (
+    system_msg = ChatMessage(
+        role=MessageRole.SYSTEM,
+        content=(
             "You are a strict P&ID valve symbol classifier. "
             "Your job is to determine if a cropped image from a P&ID schematic "
             "shows one of the known valve types, or something else entirely. "
@@ -73,40 +69,39 @@ def classify_crop(
             "one of the reference valve symbols. When in doubt, use 'unknown'. "
             "Reply with ONLY a JSON object."
         ),
-    }
+    )
 
     valid_labels = "|".join(sorted(VALID_LABELS - {"unknown"}))
 
-    user_content = [
-        {"type": "text", "text": "Here are the reference valve types:"},
-        *reference_payload,
-        {"type": "text", "text": "Now classify this unknown crop from a P&ID schematic:"},
-        {
-            "type": "image_url",
-            "image_url": {
-                "url": f"data:image/png;base64,{crop_b64}",
-                "detail": "low",
-            },
-        },
-        {
-            "type": "text",
-            "text": (
-                f'\nReply with ONLY valid JSON in this exact format:\n'
-                f'{{"label": "<{valid_labels}|unknown>", "confidence": <0.0 to 1.0>}}\n'
-                f'Use "unknown" for: pipe lines, elbows, tees, text, instruments, '
-                f'pumps, tanks, or anything that is not clearly one of the reference valve symbols.'
+    user_msg = ChatMessage(
+        role=MessageRole.USER,
+        blocks=[
+            TextBlock(text="Here are the reference valve types:"),
+            *reference_payload,
+            TextBlock(text="Now classify this unknown crop from a P&ID schematic:"),
+            ImageBlock(url=f"data:image/png;base64,{crop_b64}", detail="low"),
+            TextBlock(
+                text=(
+                    f'\nReply with ONLY valid JSON in this exact format:\n'
+                    f'{{"label": "<{valid_labels}|unknown>", "confidence": <0.0 to 1.0>}}\n'
+                    f'Use "unknown" for: pipe lines, elbows, tees, text, instruments, '
+                    f'pumps, tanks, or anything that is not clearly one of the reference valve symbols.'
+                ),
             ),
-        },
-    ]
-
-    response = client.chat.completions.create(
-        model=config["model"],
-        messages=[system_msg, {"role": "user", "content": user_content}],
-        response_format={"type": "json_object"},
+        ],
     )
-    raw = response.choices[0].message.content
+
+    llm_index = llmModels.index(config["model"])
+    response = client.chat([system_msg, user_msg], llm_index=llm_index)
+    raw = response.message.content
     if not raw:
         return {"label": "unknown", "confidence": 0.0}
+    raw = raw.strip()
+    if raw.startswith("```"):
+        raw = raw.strip("`")
+        if raw.lower().startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
     result = json.loads(raw)
 
     label = str(result.get("label", "unknown")).strip().lower()
