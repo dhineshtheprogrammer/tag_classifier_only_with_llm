@@ -16,22 +16,7 @@ secure_models = InitAOI(__name__, "USERNAME", "PASSWORD", llmModels, deploymentN
 # never runs it. Run directly with `python -m src.helper` to try it.
 
 if __name__ == "__main__":
-    from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
     from llama_index.core.llms import ChatMessage, MessageRole
-
-    # Load documents and create a vector index using the default LLM
-    documents = SimpleDirectoryReader("./data").load_data()
-    index = VectorStoreIndex.from_documents(documents)
-
-    query_engine = index.as_query_engine(temperature=0)
-    print("Strict (temperature=0):")
-    response = query_engine.query("Please give me details about John Wick.")
-    print(str(response))
-
-    query_engine = index.as_query_engine(temperature=1)
-    print("\nOpen-ended (temperature=1):")
-    response = query_engine.query("Please summarize this document on John Doe.")
-    print(str(response))
 
     # Example of a chat completion using the default (active) LLM
     chat_messages = [
